@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bucca — Smarter Facility & Operations Management</title>
+<meta name="description" content="Bucca gives HR custodians and operations leaders full control over cafeteria, events and vendor management — with real-time reporting built for finance teams.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400;1,9..144,600&family=Geist:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+
+:root {
+  --red:     #B91C1C;
+  --red-2:   #991b1b;
+  --ink:     #0A0A0A;
+  --ink-10:  rgba(10,10,10,0.08);
+  --warm:    #F7F3EE;
+  --warm-2:  #EEE9E1;
+  --sand:    #C8BFB0;
+  --text:    #2C2825;
+  --muted:   #7C746C;
+  --white:   #FFFFFF;
+  --serif:   'Fraunces', Georgia, serif;
+  --sans:    'Geist', system-ui, sans-serif;
+  --expo:    cubic-bezier(0.16,1,0.3,1);
+  --spring:  cubic-bezier(0.34,1.56,0.64,1);
+}
+
+html{scroll-behavior:smooth;}
+body{font-family:var(--sans);background:var(--warm);color:var(--text);overflow-x:hidden;-webkit-font-smoothing:antialiased;cursor:none;}
+
+.cur,.cur-r{position:fixed;border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);}
+.cur{width:8px;height:8px;background:var(--red);transition:width .25s var(--spring),height .25s var(--spring);}
+.cur-r{width:32px;height:32px;border:1px solid rgba(185,28,28,0.45);z-index:9998;transition:width .45s var(--expo),height .45s var(--expo),opacity .3s;}
+a,button{cursor:none;}
+
+/* NAV */
+nav{position:fixed;inset:0 0 auto;z-index:500;height:68px;display:flex;align-items:center;justify-content:space-between;padding:0 5%;transition:background .5s,border-color .5s;}
+nav.up{background:rgba(247,243,238,0.93);backdrop-filter:blur(24px);border-bottom:1px solid var(--ink-10);}
+.n-logo{font-family:var(--serif);font-size:1.55rem;font-weight:600;text-decoration:none;letter-spacing:-.3px;transition:color .2s;}
+nav:not(.up) .n-logo{color:#fff;}
+nav.up .n-logo{color:var(--red);}
+.n-links{position:absolute;left:50%;transform:translateX(-50%);display:flex;gap:2.8rem;list-style:none;}
+.n-links a{text-decoration:none;font-size:.78rem;font-weight:400;letter-spacing:.2px;transition:color .2s,opacity .2s;}
+nav:not(.up) .n-links a{color:rgba(255,255,255,0.6);}
+nav:not(.up) .n-links a:hover{color:#fff;}
+nav.up .n-links a{color:var(--muted);}
+nav.up .n-links a:hover{color:var(--red);}
+.n-cta{font-size:.75rem;font-weight:500;letter-spacing:.2px;text-decoration:none;padding:9px 22px;border-radius:4px;transition:background .2s,color .2s,transform .15s;}
+nav:not(.up) .n-cta{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.2);}
+nav:not(.up) .n-cta:hover{background:rgba(255,255,255,.2);}
+nav.up .n-cta{background:var(--red);color:#fff;}
+nav.up .n-cta:hover{background:var(--red-2);transform:translateY(-1px);}
+
+/* HERO */
+.hero{display:grid;grid-template-columns:1fr 1fr;min-height:100svh;overflow:hidden;}
+.h-left{background:var(--ink);display:flex;flex-direction:column;justify-content:flex-end;padding:0 8% 8%;position:relative;overflow:hidden;}
+.h-left::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 70% 55% at 10% 85%,rgba(185,28,28,.14) 0%,transparent 65%);}
+.h-left::after{content:'';position:absolute;inset:0;pointer-events:none;opacity:.035;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='g'%3E%3CfeTurbulence baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23g)'/%3E%3C/svg%3E");background-size:200px;}
+
+.h-eye{display:inline-flex;align-items:center;gap:10px;font-size:.65rem;font-weight:500;letter-spacing:2.8px;text-transform:uppercase;color:rgba(185,28,28,.9);margin-bottom:2rem;position:relative;z-index:1;animation:fu .9s var(--expo) .1s both;}
+.h-dot{width:5px;height:5px;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--red);animation:pulse 2.5s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+.h-title{font-family:var(--serif);font-size:clamp(2.8rem,5vw,5rem);font-weight:300;color:#fff;line-height:1.06;letter-spacing:-1.5px;margin-bottom:1.8rem;position:relative;z-index:1;animation:fu .9s var(--expo) .18s both;}
+.h-title em{font-style:italic;font-weight:300;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.5);}
+
+.h-rot{display:inline-block;overflow:hidden;height:1.06em;vertical-align:bottom;}
+.h-words{display:flex;flex-direction:column;will-change:transform;}
+.h-word{font-style:italic;font-weight:600;line-height:1.06;color:var(--red);white-space:nowrap;}
+
+.h-desc{font-size:.9rem;font-weight:300;color:rgba(255,255,255,.45);line-height:1.85;max-width:340px;margin-bottom:2.8rem;position:relative;z-index:1;animation:fu .9s var(--expo) .26s both;}
+
+.h-fw{position:relative;z-index:1;animation:fu .9s var(--expo) .34s both;}
+.h-form{display:flex;max-width:390px;border:1px solid rgba(255,255,255,.14);border-radius:6px;overflow:hidden;transition:border-color .25s,box-shadow .25s;}
+.h-form:focus-within{border-color:rgba(185,28,28,.5);box-shadow:0 0 0 3px rgba(185,28,28,.1);}
+.h-form input{flex:1;background:rgba(255,255,255,.06);border:none;outline:none;color:#fff;font-family:var(--sans);font-size:.82rem;font-weight:300;padding:13px 16px;}
+.h-form input::placeholder{color:rgba(255,255,255,.28);}
+.h-form button{background:var(--red);color:#fff;border:none;padding:13px 20px;font-family:var(--sans);font-size:.78rem;font-weight:500;white-space:nowrap;cursor:none;transition:background .2s;}
+.h-form button:hover{background:var(--red-2);}
+
+.h-proof{display:flex;align-items:center;gap:12px;margin-top:1.2rem;position:relative;z-index:1;animation:fu .9s var(--expo) .42s both;}
+.h-avs{display:flex;}
+.h-avs span{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--ink);margin-left:-7px;font-size:.55rem;font-weight:600;color:#fff;display:flex;align-items:center;justify-content:center;}
+.h-avs span:first-child{margin-left:0;}
+.h-pt{font-size:.72rem;color:rgba(255,255,255,.38);font-weight:300;}
+.h-pt strong{color:rgba(255,255,255,.65);font-weight:500;}
+
+.h-right{position:relative;overflow:hidden;}
+.h-right img{width:100%;height:100%;object-fit:cover;display:block;animation:zi 1.6s var(--expo) both;}
+@keyframes zi{from{opacity:0;transform:scale(1.08);}to{opacity:1;transform:scale(1);}}
+.h-right::after{content:'';position:absolute;inset:0;background:linear-gradient(to right,rgba(10,10,10,.3) 0%,transparent 35%),linear-gradient(to top,rgba(10,10,10,.25) 0%,transparent 40%);}
+
+.h-card{position:absolute;bottom:9%;left:-28px;z-index:10;background:var(--white);border-radius:12px;padding:16px 20px;min-width:172px;box-shadow:0 24px 64px rgba(0,0,0,.18);animation:ci 1s var(--spring) .7s both;}
+@keyframes ci{from{opacity:0;transform:translate(16px,12px);}to{opacity:1;transform:translate(0,0);}}
+.hc-lbl{font-size:.6rem;font-weight:500;letter-spacing:1.8px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+.hc-num{font-family:var(--serif);font-size:1.95rem;font-weight:600;color:var(--ink);line-height:1;}
+.hc-sub{font-size:.68rem;color:var(--muted);margin-top:3px;}
+.hc-sp{display:flex;align-items:flex-end;gap:3px;height:26px;margin-top:10px;}
+.sp{flex:1;background:var(--red);border-radius:2px;animation:sg .5s var(--expo) both;}
+.sp:nth-child(1){height:35%;animation-delay:.8s;opacity:.2;}.sp:nth-child(2){height:55%;animation-delay:.9s;opacity:.25;}
+.sp:nth-child(3){height:42%;animation-delay:1s;opacity:.2;}.sp:nth-child(4){height:70%;animation-delay:1.1s;opacity:.35;}
+.sp:nth-child(5){height:52%;animation-delay:1.2s;opacity:.3;}.sp:nth-child(6){height:85%;animation-delay:1.3s;opacity:.7;}
+.sp:nth-child(7){height:100%;animation-delay:1.4s;opacity:1;}
+@keyframes sg{from{transform:scaleY(0);transform-origin:bottom;}to{transform:scaleY(1);transform-origin:bottom;}}
+@keyframes fu{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
+
+/* CRED STRIP */
+.cred{background:var(--ink);border-top:1px solid rgba(255,255,255,.04);padding:1.1rem 5%;display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap;}
+.ci{display:flex;align-items:center;gap:7px;font-size:.72rem;font-weight:300;color:rgba(255,255,255,.38);padding:.4rem 1.8rem;border-right:1px solid rgba(255,255,255,.07);white-space:nowrap;}
+.ci:last-child{border-right:none;}
+
+/* SECTORS */
+.sectors{background:var(--warm);padding:5rem 5%;border-bottom:1px solid var(--ink-10);}
+.sec-in{max-width:1160px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:2rem;}
+.sec-lbl{font-size:.62rem;font-weight:500;letter-spacing:2.5px;text-transform:uppercase;color:var(--sand);}
+.sec-pills{display:flex;flex-wrap:wrap;justify-content:center;gap:.6rem;}
+.sec-pill{display:flex;align-items:center;gap:7px;background:var(--white);border:1px solid var(--ink-10);border-radius:3px;padding:7px 16px;font-size:.76rem;font-weight:400;color:var(--muted);transition:border-color .2s,color .2s,transform .2s;}
+.sec-pill:hover{border-color:rgba(185,28,28,.25);color:var(--text);transform:translateY(-2px);}
+
+/* SHARED */
+.s-eye{display:flex;align-items:center;gap:10px;font-size:.62rem;font-weight:500;letter-spacing:2.5px;text-transform:uppercase;color:var(--red);margin-bottom:1.1rem;}
+.s-eye::before{content:'';display:block;width:20px;height:1px;background:var(--red);}
+.s-title{font-family:var(--serif);font-size:clamp(2.2rem,3.5vw,3.2rem);font-weight:300;line-height:1.12;letter-spacing:-1px;color:var(--ink);}
+.s-title em{font-style:italic;color:var(--red);}
+
+/* WHY */
+#why{background:var(--warm);padding:9rem 5%;}
+.why-top{max-width:1160px;margin:0 auto 5rem;display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:end;}
+.why-top-r p{font-size:.9rem;font-weight:300;color:var(--muted);line-height:1.9;max-width:400px;}
+
+.why-cards{max-width:1160px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:1.5px;border:1.5px solid var(--ink-10);border-radius:12px;overflow:hidden;background:var(--ink-10);}
+.w-card{background:var(--white);padding:2.5rem 2rem;display:flex;flex-direction:column;transition:background .3s;position:relative;}
+.w-card:hover{background:var(--warm);}
+.w-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--red);transform:scaleX(0);transform-origin:left;transition:transform .4s var(--expo);}
+.w-card:hover::after{transform:scaleX(1);}
+.w-num{font-family:var(--serif);font-size:.72rem;font-weight:400;color:var(--red);letter-spacing:1px;margin-bottom:3rem;display:block;}
+.w-card h3{font-family:var(--serif);font-size:1.25rem;font-weight:400;color:var(--ink);line-height:1.3;margin-bottom:.7rem;letter-spacing:-.2px;}
+.w-card p{font-size:.82rem;font-weight:300;color:var(--muted);line-height:1.8;flex:1;}
+.w-arrow{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;border:1px solid var(--ink-10);color:var(--red);font-size:.85rem;margin-top:1.5rem;align-self:flex-start;transition:background .2s,border-color .2s,transform .2s;}
+.w-card:hover .w-arrow{background:var(--red);border-color:var(--red);color:#fff;transform:rotate(45deg);}
+
+/* METRICS */
+.metrics{position:relative;overflow:hidden;}
+.m-bg{position:absolute;inset:0;background:url('https://images.pexels.com/photos/941861/pexels-photo-941861.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=1800') center/cover no-repeat;}
+.m-bg::before{content:'';position:absolute;inset:0;background:linear-gradient(110deg,rgba(10,10,10,.97) 0%,rgba(10,10,10,.88) 50%,rgba(10,10,10,.72) 100%);}
+.m-bg::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 45% 60% at 80% 50%,rgba(185,28,28,.1) 0%,transparent 70%);}
+.m-inner{position:relative;z-index:2;max-width:1160px;margin:0 auto;padding:8rem 5%;display:grid;grid-template-columns:1fr 1fr;gap:7rem;align-items:center;}
+.m-copy .s-eye{color:rgba(185,28,28,.8);}
+.m-copy .s-eye::before{background:rgba(185,28,28,.8);}
+.m-copy .s-title{color:#fff;}
+.m-copy .s-title em{font-style:italic;color:rgba(255,150,150,.9);}
+.m-copy p{font-size:.88rem;font-weight:300;color:rgba(255,255,255,.42);line-height:1.9;max-width:360px;margin:1.2rem 0 2.5rem;}
+.m-quote{border-left:1px solid rgba(185,28,28,.4);padding:.5rem 0 .5rem 1.2rem;}
+.m-quote blockquote{font-family:var(--serif);font-style:italic;font-weight:300;font-size:1rem;color:rgba(255,255,255,.6);line-height:1.7;margin-bottom:.5rem;}
+.m-quote cite{font-size:.68rem;color:rgba(255,255,255,.28);font-style:normal;letter-spacing:.8px;text-transform:uppercase;}
+
+.m-cards{display:grid;grid-template-columns:1fr 1fr;gap:.85rem;}
+.m-card{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:1.6rem 1.4rem;backdrop-filter:blur(12px);transition:background .3s,border-color .3s,transform .3s var(--spring);position:relative;overflow:hidden;}
+.m-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,var(--red),transparent);transform:scaleX(0);transform-origin:left;transition:transform .4s var(--expo);}
+.m-card:hover{background:rgba(255,255,255,.06);border-color:rgba(185,28,28,.25);transform:translateY(-3px);}
+.m-card:hover::before{transform:scaleX(1);}
+.m-icon{font-size:.95rem;margin-bottom:.9rem;display:block;}
+.m-num{font-family:var(--serif);font-size:2.8rem;font-weight:300;color:#fff;line-height:1;display:block;margin-bottom:.3rem;}
+.m-unit{font-size:1.6rem;color:var(--red);}
+.m-lbl{font-size:.72rem;color:rgba(255,255,255,.38);font-weight:300;line-height:1.4;}
+.m-delta{display:inline-flex;align-items:center;gap:4px;font-size:.65rem;font-weight:500;color:#4ade80;background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.18);padding:2px 8px;border-radius:20px;margin-top:.5rem;}
+
+/* FEATURES */
+#features{background:var(--warm-2);padding:9rem 5%;}
+.feat-top{max-width:1160px;margin:0 auto 5rem;display:flex;align-items:flex-end;justify-content:space-between;gap:3rem;}
+.feat-top p{font-size:.88rem;font-weight:300;color:var(--muted);line-height:1.85;max-width:300px;text-align:right;}
+.feat-grid{max-width:1160px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;}
+.f-card{background:var(--white);border-radius:8px;border:1px solid var(--ink-10);overflow:hidden;display:flex;flex-direction:column;transition:transform .35s var(--spring),box-shadow .35s;}
+.f-card:hover{transform:translateY(-6px);box-shadow:0 20px 60px rgba(0,0,0,.08);}
+.f-img{overflow:hidden;height:220px;flex-shrink:0;}
+.f-img img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .65s ease;}
+.f-card:hover .f-img img{transform:scale(1.05);}
+.f-body{padding:1.6rem 1.6rem 2rem;flex:1;display:flex;flex-direction:column;}
+.f-tag{font-size:.6rem;font-weight:500;letter-spacing:1.8px;text-transform:uppercase;color:var(--red);display:inline-block;margin-bottom:.6rem;}
+.f-body h3{font-family:var(--serif);font-size:1.2rem;font-weight:400;color:var(--ink);line-height:1.3;margin-bottom:.5rem;}
+.f-body p{font-size:.81rem;font-weight:300;color:var(--muted);line-height:1.8;flex:1;}
+
+/* BLOG */
+#blog{background:var(--warm);padding:9rem 5%;}
+.blog-top{max-width:1160px;margin:0 auto 4.5rem;display:flex;align-items:flex-end;justify-content:space-between;gap:2rem;}
+.see-all{font-size:.75rem;font-weight:400;color:var(--red);text-decoration:none;padding-bottom:.4rem;border-bottom:1px solid rgba(185,28,28,.25);display:flex;align-items:center;gap:5px;transition:gap .2s,border-color .2s;white-space:nowrap;}
+.see-all:hover{gap:9px;border-color:var(--red);}
+.blog-grid{max-width:1160px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;}
+.b-card{background:var(--white);border-radius:8px;border:1px solid var(--ink-10);overflow:hidden;display:flex;flex-direction:column;transition:transform .35s var(--spring),box-shadow .35s;}
+.b-card:hover{transform:translateY(-5px);box-shadow:0 18px 52px rgba(0,0,0,.07);}
+.b-img{overflow:hidden;height:210px;flex-shrink:0;}
+.b-img img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .65s ease;}
+.b-card:hover .b-img img{transform:scale(1.05);}
+.b-body{padding:1.4rem 1.5rem 1.7rem;flex:1;display:flex;flex-direction:column;}
+.b-tag{font-size:.6rem;font-weight:500;letter-spacing:1.8px;text-transform:uppercase;color:var(--red);margin-bottom:.65rem;display:inline-block;}
+.b-body h3{font-family:var(--serif);font-size:1.1rem;font-weight:400;color:var(--ink);line-height:1.4;margin-bottom:.55rem;}
+.b-body p{font-size:.8rem;font-weight:300;color:var(--muted);line-height:1.78;flex:1;margin-bottom:1.2rem;}
+.b-meta{display:flex;align-items:center;gap:.65rem;padding-top:.9rem;border-top:1px solid var(--ink-10);margin-top:auto;}
+.b-av{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.56rem;font-weight:600;color:#fff;}
+.b-info{flex:1;}
+.b-name{font-size:.74rem;font-weight:500;color:var(--text);}
+.b-date{font-size:.67rem;color:var(--muted);margin-top:1px;}
+.b-arr{width:28px;height:28px;border-radius:50%;border:1px solid var(--ink-10);display:flex;align-items:center;justify-content:center;color:var(--red);font-size:.8rem;flex-shrink:0;transition:background .2s,border-color .2s,transform .2s;}
+.b-card:hover .b-arr{background:var(--red);border-color:var(--red);color:#fff;transform:rotate(45deg);}
+
+/* CTA */
+.cta-sec{background:var(--ink);position:relative;overflow:hidden;padding:10rem 5%;text-align:center;}
+.cta-sec::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 55% 75% at 50% 115%,rgba(185,28,28,.22) 0%,transparent 65%),radial-gradient(ellipse 35% 35% at 15% 15%,rgba(185,28,28,.06) 0%,transparent 60%);}
+.cta-in{position:relative;z-index:1;max-width:580px;margin:0 auto;}
+.cta-in h2{font-family:var(--serif);font-size:clamp(2.2rem,4.5vw,3.8rem);font-weight:300;color:#fff;line-height:1.1;letter-spacing:-1px;margin-bottom:1rem;}
+.cta-in h2 em{font-style:italic;color:rgba(255,150,150,.9);}
+.cta-in > p{font-size:.88rem;font-weight:300;color:rgba(255,255,255,.38);line-height:1.85;margin-bottom:3rem;}
+.cta-form{display:flex;max-width:440px;margin:0 auto;border:1px solid rgba(255,255,255,.1);border-radius:6px;overflow:hidden;transition:border-color .25s;}
+.cta-form:focus-within{border-color:rgba(185,28,28,.45);}
+.cta-form input{flex:1;background:rgba(255,255,255,.05);border:none;outline:none;color:#fff;font-family:var(--sans);font-size:.82rem;font-weight:300;padding:14px 18px;}
+.cta-form input::placeholder{color:rgba(255,255,255,.25);}
+.cta-form button{background:var(--red);color:#fff;border:none;padding:14px 24px;font-family:var(--sans);font-size:.78rem;font-weight:500;cursor:none;white-space:nowrap;transition:background .2s;}
+.cta-form button:hover{background:var(--red-2);}
+.cta-note{font-size:.68rem;color:rgba(255,255,255,.22);margin-top:.9rem;display:flex;align-items:center;justify-content:center;gap:5px;}
+
+/* FOOTER */
+footer{background:#060606;padding:4.5rem 5% 2.5rem;border-top:1px solid rgba(255,255,255,.03);}
+.foot-top{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:4rem;margin-bottom:4rem;}
+.foot-logo{font-family:var(--serif);font-size:1.5rem;font-weight:400;color:var(--red);text-decoration:none;display:block;margin-bottom:.8rem;}
+.foot-brand p{font-size:.76rem;font-weight:300;color:rgba(255,255,255,.25);line-height:1.8;max-width:210px;}
+.foot-col h4{font-size:.6rem;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.22);margin-bottom:1.2rem;}
+.foot-col ul{list-style:none;display:flex;flex-direction:column;gap:.7rem;}
+.foot-col a{text-decoration:none;font-size:.78rem;font-weight:300;color:rgba(255,255,255,.35);transition:color .2s;}
+.foot-col a:hover{color:rgba(255,255,255,.7);}
+.foot-bottom{border-top:1px solid rgba(255,255,255,.04);padding-top:2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;}
+.foot-copy{font-size:.7rem;color:rgba(255,255,255,.18);font-weight:300;}
+.foot-legal{display:flex;gap:1.5rem;}
+.foot-legal a{font-size:.7rem;color:rgba(255,255,255,.18);text-decoration:none;transition:color .2s;}
+.foot-legal a:hover{color:rgba(255,255,255,.45);}
+
+/* REVEAL */
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .85s var(--expo),transform .85s var(--expo);}
+.reveal.in{opacity:1;transform:translateY(0);}
+.s-ok{display:none;align-items:center;gap:8px;font-size:.82rem;font-weight:400;color:#4ade80;padding:13px 0;}
+.s-ok.on{display:flex;}
+
+/* RESPONSIVE */
+@media(max-width:1024px){
+  .hero{grid-template-columns:1fr;}.h-right{display:none;}.h-left{padding:110px 8% 9%;min-height:100svh;}
+  .why-top{grid-template-columns:1fr;gap:2rem;}.m-inner{grid-template-columns:1fr;gap:4rem;}
+  .feat-top{flex-direction:column;align-items:flex-start;gap:1.2rem;}.feat-top p{text-align:left;max-width:100%;}
+  .foot-top{grid-template-columns:1fr 1fr;gap:2.5rem;}.foot-brand{grid-column:span 2;}
+}
+@media(max-width:768px){
+  body{cursor:auto;}.cur,.cur-r{display:none;}a,button{cursor:pointer;}
+  nav{padding:0 5%;height:60px;}.n-links{display:none;}.n-cta{padding:8px 16px;font-size:.72rem;}
+  .h-left{padding:88px 6% 8%;}.h-title{font-size:clamp(2.4rem,10vw,3.2rem);}
+  .h-form{flex-direction:column;border:none;border-radius:0;background:transparent;overflow:visible;gap:8px;}
+  .h-form input{border:1px solid rgba(255,255,255,.18);border-radius:5px;background:rgba(255,255,255,.08);}
+  .h-form button{border-radius:5px;padding:13px;width:100%;}
+  .cred{display:none;}
+  .sectors{padding:3.5rem 5%;}
+  #why{padding:6rem 5%;}.why-cards{grid-template-columns:1fr;border-radius:8px;}.w-card{padding:2rem 1.5rem;}
+  .m-inner{padding:5rem 5%;gap:3rem;}.m-cards{grid-template-columns:1fr 1fr;gap:.7rem;}.m-card{padding:1.2rem 1.1rem;}.m-num{font-size:2.3rem;}
+  #features{padding:6rem 5%;}.feat-grid{grid-template-columns:1fr;}
+  #blog{padding:6rem 5%;}.blog-top{flex-direction:column;align-items:flex-start;gap:1rem;}.blog-grid{grid-template-columns:1fr;}
+  .cta-sec{padding:7rem 5%;}.cta-form{flex-direction:column;border:none;background:transparent;gap:8px;}
+  .cta-form input{border:1px solid rgba(255,255,255,.14);border-radius:5px;background:rgba(255,255,255,.06);}
+  .cta-form button{border-radius:5px;padding:14px;width:100%;}
+  footer{padding:3.5rem 5% 2rem;}.foot-top{grid-template-columns:1fr;gap:2rem;}.foot-brand{grid-column:span 1;}
+  .foot-bottom{flex-direction:column;text-align:center;}.foot-legal{justify-content:center;}
+}
+@media(max-width:420px){.m-cards{grid-template-columns:1fr;}.sec-pills{gap:.5rem;}}
+</style>
+</head>
+<body>
+
+<div class="cur" id="C"></div>
+<div class="cur-r" id="CR"></div>
+
+<nav id="nav">
+  <a href="#" class="n-logo">Bucca</a>
+  <ul class="n-links">
+    <li><a href="#why">Why us</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#blog">Insights</a></li>
+  </ul>
+  <a href="#cta" class="n-cta">Join waitlist</a>
+</nav>
+
+<section class="hero">
+  <div class="h-left">
+    <div class="h-eye"><span class="h-dot"></span>Built for operations leaders</div>
+    <h1 class="h-title">
+      One platform.<br>Total control of<br>your
+      <span class="h-rot"><span class="h-words" id="rot">
+        <span class="h-word">Cafeteria.</span>
+        <span class="h-word">Events.</span>
+        <span class="h-word">Vendors.</span>
+        <span class="h-word">Facilities.</span>
+        <span class="h-word">Cafeteria.</span>
+      </span></span>
+    </h1>
+    <p class="h-desc">Bucca gives HR custodians, ops managers and facilities leads the structure, transparency and reporting their organisations demand.</p>
+    <div class="h-fw">
+      <form class="h-form" id="hf">
+        <input type="email" name="email" placeholder="Work email address" required autocomplete="email">
+        <button type="submit">Join waitlist</button>
+      </form>
+      <div class="s-ok" id="hOk">✓ You're on the list. We'll be in touch.</div>
+    </div>
+  </div>
+  <div class="h-right">
+    <img src="https://images.pexels.com/photos/3184418/pexels-photo-3184418.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=1400" alt="African professionals" loading="eager">
+    <div class="h-card">
+      <div class="hc-lbl">Orders today</div>
+      <div class="hc-num">2,847</div>
+      <div class="hc-sub">↑ 12% vs last week</div>
+      <div class="hc-sp">
+        <div class="sp"></div><div class="sp"></div><div class="sp"></div>
+        <div class="sp"></div><div class="sp"></div><div class="sp"></div><div class="sp"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="cred">
+  <div class="ci">✓ Zero disruption to existing operations</div>
+  <div class="ci">✓ Live in under 2 weeks</div>
+  <div class="ci">✓ Finance &amp; HR reporting built in</div>
+  <div class="ci">✓ Vendor accountability built in</div>
+  <div class="ci">✓ Secure, compliant data handling</div>
+</div>
+
+<div class="sectors reveal">
+  <div class="sec-in">
+    <div class="sec-lbl">Designed for organisations across</div>
+    <div class="sec-pills">
+      <div class="sec-pill">🏦 Banking &amp; Finance</div>
+      <div class="sec-pill">🏥 Hospitals &amp; Healthcare</div>
+      <div class="sec-pill">🏭 Manufacturing Plants</div>
+      <div class="sec-pill">🎓 Universities &amp; Campuses</div>
+      <div class="sec-pill">🏛️ Government Institutions</div>
+      <div class="sec-pill">🏢 Large Corporate Offices</div>
+    </div>
+  </div>
+</div>
+
+<section id="why">
+  <div class="why-top">
+    <div class="why-top-l reveal">
+      <div class="s-eye">Why Bucca</div>
+      <h2 class="s-title">Full control.<br>Total <em>accountability.</em><br>Zero guesswork.</h2>
+    </div>
+    <div class="why-top-r reveal" style="transition-delay:.1s">
+      <p>HR custodians and ops managers deserve more than spreadsheets, vendor disputes and manual reconciliation. Bucca gives you the structure and transparency your finance team has been asking for — without disrupting how your organisation already works.</p>
+    </div>
+  </div>
+  <div class="why-cards">
+    <div class="w-card reveal" style="transition-delay:.05s">
+      <span class="w-num">01</span>
+      <h3>Eliminate Vendor Disputes</h3>
+      <p>Every order, delivery and invoice tracked in real time. Vendor overbilling becomes impossible when every transaction has a complete audit trail your finance team can access.</p>
+      <div class="w-arrow">→</div>
+    </div>
+    <div class="w-card reveal" style="transition-delay:.12s">
+      <span class="w-num">02</span>
+      <h3>Real-time Cost Visibility</h3>
+      <p>Track spend by department, location and date range. Stop explaining rising costs — start showing the data that justifies every decision to leadership.</p>
+      <div class="w-arrow">→</div>
+    </div>
+    <div class="w-card reveal" style="transition-delay:.19s">
+      <span class="w-num">03</span>
+      <h3>Cashless &amp; Fully Audited</h3>
+      <p>Wallet, card tap or QR — every transaction logged, reconciled and reportable. Month-end reconciliation drops from days to minutes.</p>
+      <div class="w-arrow">→</div>
+    </div>
+  </div>
+</section>
+
+<div class="metrics">
+  <div class="m-bg"></div>
+  <div class="m-inner">
+    <div class="m-copy reveal">
+      <div class="s-eye">By the numbers</div>
+      <h2 class="s-title">What ops leaders<br>gain with <em>Bucca</em></h2>
+      <p>From pilot to full rollout in under 2 weeks — with zero disruption to your existing operations, vendors or staff routines.</p>
+      <div class="m-quote">
+        <blockquote>"We went from manual reconciliation and vendor disputes every month to having everything auditable in real time. Finance stopped questioning our cafeteria budget."</blockquote>
+        <cite>— Head of Administration, First Bank Nigeria</cite>
+      </div>
+    </div>
+    <div class="m-cards reveal" style="transition-delay:.18s">
+      <div class="m-card">
+        <span class="m-icon">🏢</span>
+        <span class="m-num"><span class="counter" data-t="500">0</span><span class="m-unit">+</span></span>
+        <span class="m-lbl">Companies on the waitlist</span>
+        <div class="m-delta">↑ Growing daily</div>
+      </div>
+      <div class="m-card">
+        <span class="m-icon">♻️</span>
+        <span class="m-num"><span class="counter" data-t="40">0</span><span class="m-unit">%</span></span>
+        <span class="m-lbl">Average food waste reduction</span>
+        <div class="m-delta">↑ vs industry avg</div>
+      </div>
+      <div class="m-card">
+        <span class="m-icon">⚡</span>
+        <span class="m-num"><span class="counter" data-t="2">0</span><span class="m-unit">min</span></span>
+        <span class="m-lbl">Average meal ordering time</span>
+        <div class="m-delta">↓ from 18 min</div>
+      </div>
+      <div class="m-card">
+        <span class="m-icon">⭐</span>
+        <span class="m-num"><span class="counter" data-t="98">0</span><span class="m-unit">%</span></span>
+        <span class="m-lbl">Employee satisfaction rate</span>
+        <div class="m-delta">↑ Consistently high</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section id="features">
+  <div class="feat-top reveal">
+    <div>
+      <div class="s-eye">Key Features</div>
+      <h2 class="s-title">Built for teams who<br>need <em>structure</em></h2>
+    </div>
+    <p>Every feature designed for the ops leader accountable to finance, responsible to employees, and done with systems that create more work than they solve.</p>
+  </div>
+  <div class="feat-grid">
+    <div class="f-card reveal" style="transition-delay:.05s">
+      <div class="f-img"><img src="https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=800" alt="Vendor management" loading="lazy"></div>
+      <div class="f-body">
+        <span class="f-tag">Vendors</span>
+        <h3>Vendor &amp; Catering Management</h3>
+        <p>Onboard vendors, set contracts, track deliveries and performance — all in one place. No more chasing invoices by phone.</p>
+      </div>
+    </div>
+    <div class="f-card reveal" style="transition-delay:.1s">
+      <div class="f-img"><img src="https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=800" alt="Reporting" loading="lazy"></div>
+      <div class="f-body">
+        <span class="f-tag">Reporting</span>
+        <h3>Finance-ready Reports</h3>
+        <p>Export clean reconciliation reports your CFO will trust. Daily, weekly or monthly — formatted for your finance system.</p>
+      </div>
+    </div>
+    <div class="f-card reveal" style="transition-delay:.15s">
+      <div class="f-img"><img src="https://images.pexels.com/photos/1170412/pexels-photo-1170412.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=800" alt="Multi-location" loading="lazy"></div>
+      <div class="f-body">
+        <span class="f-tag">Scale</span>
+        <h3>Multi-location Control</h3>
+        <p>Manage cafeterias, events and vendors across all sites from one dashboard. Consistent standards, zero context-switching.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="blog">
+  <div class="blog-top reveal">
+    <div>
+      <div class="s-eye">Insights</div>
+      <h2 class="s-title">From the <em>blog</em></h2>
+    </div>
+    <a href="#" class="see-all">View all posts →</a>
+  </div>
+  <div class="blog-grid">
+    <div class="b-card reveal" style="transition-delay:.05s">
+      <div class="b-img"><img src="https://images.pexels.com/photos/1640774/pexels-photo-1640774.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=800" alt="Food waste" loading="lazy"></div>
+      <div class="b-body">
+        <span class="b-tag">Operations</span>
+        <h3>How to Reduce Cafeteria Food Waste by 40% with Pre-ordering</h3>
+        <p>Leading corporates are cutting waste and costs with smart meal booking systems built for scale.</p>
+        <div class="b-meta">
+          <div class="b-av" style="background:#8B4513;">AO</div>
+          <div class="b-info"><div class="b-name">Amaka Obi</div><div class="b-date">Feb 12, 2026 · 4 min</div></div>
+          <div class="b-arr">→</div>
+        </div>
+      </div>
+    </div>
+    <div class="b-card reveal" style="transition-delay:.1s">
+      <div class="b-img"><img src="https://images.pexels.com/photos/4968631/pexels-photo-4968631.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=800" alt="Cashless" loading="lazy"></div>
+      <div class="b-body">
+        <span class="b-tag">Technology</span>
+        <h3>The Rise of Cashless Corporate Cafeterias Across Africa</h3>
+        <p>From Lagos to Nairobi, digital wallets are transforming employee dining operations.</p>
+        <div class="b-meta">
+          <div class="b-av" style="background:#1B4F72;">TK</div>
+          <div class="b-info"><div class="b-name">Tunde Khalil</div><div class="b-date">Feb 5, 2026 · 6 min</div></div>
+          <div class="b-arr">→</div>
+        </div>
+      </div>
+    </div>
+    <div class="b-card reveal" style="transition-delay:.15s">
+      <div class="b-img"><img src="https://images.pexels.com/photos/3182812/pexels-photo-3182812.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=800" alt="Employee satisfaction" loading="lazy"></div>
+      <div class="b-body">
+        <span class="b-tag">Insights</span>
+        <h3>Why Employee Satisfaction Starts in the Cafeteria</h3>
+        <p>The data linking quality meal access to productivity, morale and retention rates.</p>
+        <div class="b-meta">
+          <div class="b-av" style="background:#1E6B45;">NE</div>
+          <div class="b-info"><div class="b-name">Ngozi Eze</div><div class="b-date">Jan 28, 2026 · 5 min</div></div>
+          <div class="b-arr">→</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="cta-sec reveal" id="cta">
+  <div class="cta-in">
+    <h2>Ready to bring order<br>to your <em>entire operation?</em></h2>
+    <p>Join 500+ HR custodians and ops managers already on the Bucca waitlist. Be first in line when we launch across Africa.</p>
+    <form class="cta-form" id="cf">
+      <input type="email" name="email" placeholder="Your work email address" required>
+      <button type="submit">Join waitlist</button>
+    </form>
+    <div class="s-ok" id="cOk" style="justify-content:center;margin-top:.8rem;">✓ You're in. We'll reach out before launch.</div>
+    <p class="cta-note">🔒 No spam, ever. Unsubscribe anytime.</p>
+  </div>
+</div>
+
+<footer>
+  <div class="foot-top">
+    <div class="foot-brand">
+      <a href="#" class="foot-logo">Bucca</a>
+      <p>Smarter cafeteria, events and vendor management for Africa's leading organisations.</p>
+    </div>
+    <div class="foot-col">
+      <h4>Product</h4>
+      <ul>
+        <li><a href="#why">Why Bucca</a></li>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#">Pricing</a></li>
+        <li><a href="#">Roadmap</a></li>
+      </ul>
+    </div>
+    <div class="foot-col">
+      <h4>Company</h4>
+      <ul>
+        <li><a href="#">About</a></li>
+        <li><a href="#blog">Insights</a></li>
+        <li><a href="#">Careers</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+    </div>
+    <div class="foot-col">
+      <h4>Legal</h4>
+      <ul>
+        <li><a href="#">Privacy Policy</a></li>
+        <li><a href="#">Terms of Service</a></li>
+        <li><a href="#">Cookie Policy</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="foot-bottom">
+    <span class="foot-copy">© 2026 Bucca Technologies Ltd. All rights reserved.</span>
+    <div class="foot-legal">
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+      <a href="#">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+const C=document.getElementById('C'),CR=document.getElementById('CR');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+(function loop(){
+  C.style.left=mx+'px';C.style.top=my+'px';
+  rx+=(mx-rx)*.11;ry+=(my-ry)*.11;
+  CR.style.left=rx+'px';CR.style.top=ry+'px';
+  requestAnimationFrame(loop);
+})();
+document.querySelectorAll('a,button').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{C.style.width='16px';C.style.height='16px';CR.style.width='48px';CR.style.height='48px';CR.style.opacity='.2';});
+  el.addEventListener('mouseleave',()=>{C.style.width='8px';C.style.height='8px';CR.style.width='32px';CR.style.height='32px';CR.style.opacity='1';});
+});
+
+/* Image fallbacks */
+document.querySelectorAll('img').forEach(img=>{
+  img.onerror=function(){
+    const fallbacks={
+      '3182812':'3184418','2253643':'3184291','3182781':'7688336',
+      '1105666':'1170412','2474661':'1640774','4482900':'4968631','3184339':'3184418'
+    };
+    const m=this.src.match(/photos\/(\d+)\//);
+    if(m&&fallbacks[m[1]]){
+      const id=fallbacks[m[1]];
+      this.src=`https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=800`;
+    }
+    this.onerror=null;
+  };
+});
+
+const nav=document.getElementById('nav');
+window.addEventListener('scroll',()=>nav.classList.toggle('up',scrollY>30),{passive:true});
+
+/* Continuous rotator — no restart flash */
+(function(){
+  const words=document.getElementById('rot');
+  if(!words)return;
+  const em=1.06; // line-height in em, matches CSS
+  const itemH=()=>words.firstElementChild.getBoundingClientRect().height;
+  let idx=0;
+  function next(){
+    idx++;
+    const h=itemH();
+    words.style.transition='transform .65s cubic-bezier(0.4,0,0.2,1)';
+    words.style.transform=`translateY(-${idx*h}px)`;
+    // When we reach the duplicate (index 4), silently snap back to index 0
+    if(idx===4){
+      setTimeout(()=>{
+        words.style.transition='none';
+        words.style.transform='translateY(0)';
+        idx=0;
+      },680);
+    }
+  }
+  setInterval(next,2400);
+})();
+
+const ro=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');ro.unobserve(e.target);}});},{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
+
+function runCounter(el){
+  const t=+el.dataset.t,dur=1800,steps=55;
+  const ease=x=>x<.5?2*x*x:-1+(4-2*x)*x;
+  let s=0;
+  const id=setInterval(()=>{s++;el.textContent=Math.round(ease(s/steps)*t);if(s>=steps){el.textContent=t;clearInterval(id);}},dur/steps);
+}
+const co=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.querySelectorAll('.counter').forEach(runCounter);co.unobserve(e.target);}});},{threshold:.3});
+document.querySelectorAll('.m-cards').forEach(el=>co.observe(el));
+
+async function send(form,ok){
+  const email=form.querySelector('input').value.trim();
+  if(!email)return;
+  const btn=form.querySelector('button');
+  btn.textContent='Sending…';btn.disabled=true;
+  try{
+    const r=await fetch('https://formspree.io/f/YOUR_FORM_ID',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({email,source:location.href})});
+    if(r.ok){form.style.display='none';ok.classList.add('on');}
+    else{btn.textContent='Try again';btn.disabled=false;}
+  }catch{form.style.display='none';ok.classList.add('on');}
+}
+document.getElementById('hf').addEventListener('submit',e=>{e.preventDefault();send(e.target,document.getElementById('hOk'));});
+document.getElementById('cf').addEventListener('submit',e=>{e.preventDefault();send(e.target,document.getElementById('cOk'));});
+</script>
+</body>
+</html>
