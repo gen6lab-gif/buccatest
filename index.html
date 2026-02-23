@@ -287,7 +287,8 @@ footer{background:#080808;padding:4rem 5.5% 2rem;border-top:1px solid rgba(255,2
 .marquee-wrap::before,.marquee-wrap::after{content:'';position:absolute;top:0;bottom:0;width:120px;z-index:2;pointer-events:none;}
 .marquee-wrap::before{left:0;background:linear-gradient(90deg,var(--ink),transparent);}
 .marquee-wrap::after{right:0;background:linear-gradient(-90deg,var(--ink),transparent);}
-.marquee-track{display:flex;align-items:center;gap:.9rem;width:max-content;flex-wrap:nowrap;line-height:1;}
+.marquee-track{display:flex;align-items:center;gap:.4rem;width:max-content;flex-wrap:nowrap;line-height:1;}
+@media(min-width:769px){.marquee-track{gap:.4rem;}}
 .marquee-track:hover{animation-play-state:paused;}
 @keyframes marquee{0%{transform:translateX(0);}100%{transform:translateX(calc(-1 * var(--set-w, 50%)));}}
 .t-logo{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;filter:brightness(0) invert(1);opacity:.45;transition:opacity .35s,filter .35s,transform .3s var(--spr);vertical-align:middle;}
@@ -720,7 +721,9 @@ document.getElementById('cf').addEventListener('submit',e=>{e.preventDefault();s
 /* ── Medium RSS Blog Feed ── */
 (async function loadBlog() {
   const grid = document.getElementById('blog-grid');
-  const FEED = 'https://api.rss2json.com/v1/api.json?rss_url=https://medium.com/feed/@buccang&api_key=public&count=3';
+  // Fetch raw RSS via CORS proxy — gives us content:encoded where Medium puts the featured image
+  const MEDIUM_RSS = 'https://medium.com/feed/@buccang';
+  const PROXY = 'https://corsproxy.io/?' + encodeURIComponent(MEDIUM_RSS);
 
   function avatarInitials(name) {
     return name ? name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase() : 'B';
@@ -731,43 +734,60 @@ document.getElementById('cf').addEventListener('submit',e=>{e.preventDefault();s
     for (let c of (name||'B')) hash = c.charCodeAt(0) + ((hash<<5)-hash);
     return colors[Math.abs(hash) % colors.length];
   }
-  function readTime(content) {
-    const words = content ? content.replace(/<[^>]+>/g,'').split(/\s+/).length : 300;
+  function readTime(html) {
+    const words = html ? html.replace(/<[^>]+>/g,'').split(/\s+/).length : 300;
     return Math.max(1, Math.round(words / 200)) + ' min read';
   }
   function formatDate(str) {
     return new Date(str).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
   }
-  function excerpt(content, max=120) {
-    const text = content ? content.replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim() : '';
+  function excerpt(html, max=120) {
+    const text = html ? html.replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim() : '';
     return text.length > max ? text.slice(0, max).trimEnd() + '…' : text;
   }
-  function thumbnail(item) {
-    // Try enclosure, then og image in description
-    if (item.enclosure && item.enclosure.link) return item.enclosure.link;
-    const match = (item.description||'').match(/<img[^>]+src="([^"]+)"/);
-    if (match) return match[1];
-    return null;
+  function firstImage(html) {
+    const match = html ? html.match(/<img[^>]+src="([^"]+)"/i) : null;
+    return match ? match[1] : null;
   }
 
   try {
-    const res = await fetch(FEED);
-    const data = await res.json();
+    const res = await fetch(PROXY);
+    const text = await res.text();
+    const xml = new DOMParser().parseFromString(text, 'text/xml');
+    const xmlItems = Array.from(xml.querySelectorAll('item')).slice(0, 3);
+    if (!xmlItems.length) throw new Error('No items');
 
-    if (!data.items || !data.items.length) throw new Error('No items');
+    // Map XML nodes into a plain object shape the rest of the code can use
+    const data = { items: xmlItems.map(item => {
+      const contentEncoded = item.getElementsByTagNameNS('http://purl.org/rss/1.0/modules/content/', 'encoded')[0]?.textContent || '';
+      const description    = item.querySelector('description')?.textContent || '';
+      // <link> in RSS is a text node after the tag, not an attribute
+      const linkNode = item.querySelector('link');
+      const link = linkNode?.nextSibling?.textContent?.trim() || linkNode?.textContent || '#';
+      return {
+        title:       item.querySelector('title')?.textContent || '',
+        link,
+        pubDate:     item.querySelector('pubDate')?.textContent || '',
+        author:      item.getElementsByTagNameNS('http://purl.org/dc/elements/1.1/', 'creator')[0]?.textContent || 'Bucca',
+        categories:  Array.from(item.querySelectorAll('category')).map(c => c.textContent),
+        description,
+        contentEncoded,
+        img: firstImage(contentEncoded) || firstImage(description),
+      };
+    })};
 
-    const posts = data.items.slice(0, 3);
+    const posts = data.items;
     const delays = ['.05s', '.1s', '.15s'];
 
     grid.innerHTML = posts.map((item, i) => {
-      const img = thumbnail(item);
-      const author = item.author || 'Bucca';
-      const tag = (item.categories && item.categories[0]) ? item.categories[0] : 'Insights';
-      const time = readTime(item.description);
-      const date = formatDate(item.pubDate);
+      const img      = item.img;
+      const author   = item.author;
+      const tag      = item.categories[0] || 'Insights';
+      const time     = readTime(item.contentEncoded || item.description);
+      const date     = formatDate(item.pubDate);
       const initials = avatarInitials(author);
-      const color = avatarColor(author);
-      const desc = excerpt(item.description);
+      const color    = avatarColor(author);
+      const desc     = excerpt(item.description);
 
       return `
       <a href="${item.link}" target="_blank" rel="noopener" class="bc rev in" style="transition-delay:${delays[i]}">
