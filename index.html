@@ -723,7 +723,11 @@ document.getElementById('cf').addEventListener('submit',e=>{e.preventDefault();s
   const grid = document.getElementById('blog-grid');
   // Fetch raw RSS via CORS proxy — gives us content:encoded where Medium puts the featured image
   const MEDIUM_RSS = 'https://medium.com/feed/@buccang';
-  const PROXY = 'https://corsproxy.io/?' + encodeURIComponent(MEDIUM_RSS);
+  const PROXIES = [
+    'https://api.allorigins.win/raw?url=' + encodeURIComponent(MEDIUM_RSS),
+    'https://corsproxy.io/?' + encodeURIComponent(MEDIUM_RSS),
+    'https://cors-anywhere.herokuapp.com/' + MEDIUM_RSS,
+  ];
 
   function avatarInitials(name) {
     return name ? name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase() : 'B';
@@ -751,8 +755,14 @@ document.getElementById('cf').addEventListener('submit',e=>{e.preventDefault();s
   }
 
   try {
-    const res = await fetch(PROXY);
-    const text = await res.text();
+    let text = null;
+    for (const proxy of PROXIES) {
+      try {
+        const res = await fetch(proxy, { signal: AbortSignal.timeout(6000) });
+        if (res.ok) { text = await res.text(); break; }
+      } catch(e) { /* try next */ }
+    }
+    if (!text) throw new Error('All proxies failed');
     const xml = new DOMParser().parseFromString(text, 'text/xml');
     const xmlItems = Array.from(xml.querySelectorAll('item')).slice(0, 3);
     if (!xmlItems.length) throw new Error('No items');
